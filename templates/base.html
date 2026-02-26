@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Multimedia Project{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}">Multimedia Projects</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'projects:browse' %}">Browse</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'projects:dashboard' %}">Dashboard</a></li>
+                    <li><a href="{% url 'media:library' %}">Media</a></li>
+                    <li><a href="{% url 'accounts:team_list' %}">Teams</a></li>
+                    <li class="nav-user">
+                        <span>{{ user.username }}</span>
+                        <ul class="dropdown">
+                            <li><a href="{% url 'accounts:profile' user.username %}">Profile</a></li>
+                            <li><a href="{% url 'accounts:profile_edit' %}">Edit Profile</a></li>
+                            <li><a href="{% url 'accounts:logout' %}">Logout</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'accounts:login' %}">Login</a></li>
+                    <li><a href="{% url 'accounts:register' %}">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <button type="button" class="close">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Multimedia Project Website. Built with Django.</p>
+            <ul>
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'projects:browse' %}">Browse</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        // Simple message dismiss
+        document.querySelectorAll('.close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.style.display = 'none';
+            });
+        });
+
+        // Simple dropdown toggle
+        document.querySelectorAll('.nav-user').forEach(userMenu => {
+            userMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.querySelector('.dropdown').classList.toggle('active');
+            });
+        });
+
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

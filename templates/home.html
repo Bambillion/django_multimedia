@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Multimedia Project Website{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h1>Welcome to Multimedia Projects</h1>
+        <p>Create, share, and collaborate on multimedia projects with your team</p>
+        {% if user.is_authenticated %}
+            <div class="hero-buttons">
+                <a href="{% url 'projects:dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
+                <a href="{% url 'projects:create' %}" class="btn btn-secondary">Create Project</a>
+            </div>
+        {% else %}
+            <div class="hero-buttons">
+                <a href="{% url 'accounts:register' %}" class="btn btn-primary">Get Started</a>
+                <a href="{% url 'projects:browse' %}" class="btn btn-secondary">Browse Projects</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature">
+        <h3>Manage Projects</h3>
+        <p>Create and organize your multimedia projects with ease. Upload images, videos, audio, and documents.</p>
+    </div>
+    <div class="feature">
+        <h3>Collaborate</h3>
+        <p>Work with teams, share feedback through comments, and manage permissions for team members.</p>
+    </div>
+    <div class="feature">
+        <h3>Showcase Portfolio</h3>
+        <p>Create a professional portfolio to showcase your best work to clients and collaborators.</p>
+    </div>
+    <div class="feature">
+        <h3>Discover</h3>
+        <p>Browse and discover projects from other creators in various categories.</p>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+<div class="dashboard-preview">
+    <h2>Recent Activity</h2>
+    <div class="recent-projects">
+        {% for project in user.created_projects.all|slice:":6" %}
+            <div class="project-card">
+                <div class="project-image">
+                    {% if project.thumbnail %}
+                        <img src="{{ project.thumbnail.url }}" alt="{{ project.title }}">
+                    {% else %}
+                        <div class="placeholder">No image</div>
+                    {% endif %}
+                </div>
+                <div class="project-info">
+                    <h4><a href="{% url 'projects:detail' project.slug %}">{{ project.title }}</a></h4>
+                    <p class="status">{{ project.get_status_display }}</p>
+                    <a href="{% url 'projects:edit' project.slug %}" class="btn-small">Edit</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

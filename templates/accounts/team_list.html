@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Teams - Multimedia Project{% endblock %}
+
+{% block content %}
+<div class="teams-page">
+    <div class="page-header">
+        <h1>My Teams</h1>
+        <div class="header-actions">
+            <a href="{% url 'accounts:team_create' %}" class="btn btn-primary">Create New Team</a>
+        </div>
+    </div>
+
+    <div class="teams-section">
+        <h2>Teams I Own</h2>
+        {% if owned_teams %}
+            <div class="teams-grid">
+                {% for team in owned_teams %}
+                    <div class="team-card">
+                        <div class="team-header">
+                            {% if team.logo %}
+                                <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="team-logo">
+                            {% else %}
+                                <div class="team-logo-placeholder">
+                                    <i class="icon-team">👥</i>
+                                </div>
+                            {% endif %}
+                            <div class="team-info">
+                                <h3>{{ team.name }}</h3>
+                                <span class="team-role">Owner</span>
+                            </div>
+                        </div>
+                        <div class="team-details">
+                            <p class="team-description">{{ team.description|default:"No description" }}</p>
+                            <div class="team-stats">
+                                <span class="stat">
+                                    <i class="icon-members">👤</i>
+                                    {{ team.get_member_count }} members
+                                </span>
+                                <span class="stat">
+                                    <i class="icon-projects">📁</i>
+                                    {{ team.projects.count }} projects
+                                </span>
+                            </div>
+                        </div>
+                        <div class="team-actions">
+                            <a href="{% url 'accounts:team_detail' team.pk %}" class="btn btn-small">View Team</a>
+                            <a href="{% url 'accounts:team_add_member' team.pk %}" class="btn btn-small btn-secondary">Add Member</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🏗️</div>
+                <h3>No teams created yet</h3>
+                <p>Create your first team to start collaborating on projects.</p>
+                <a href="{% url 'accounts:team_create' %}" class="btn btn-primary">Create Team</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="teams-section">
+        <h2>Teams I'm In</h2>
+        {% if teams %}
+            <div class="teams-grid">
+                {% for team in teams %}
+                    {% if team not in owned_teams %}
+                        <div class="team-card">
+                            <div class="team-header">
+                                {% if team.logo %}
+                                    <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="team-logo">
+                                {% else %}
+                                    <div class="team-logo-placeholder">
+                                        <i class="icon-team">👥</i>
+                                    </div>
+                                {% endif %}
+                                <div class="team-info">
+                                    <h3>{{ team.name }}</h3>
+                                    <span class="team-role">{{ team.get_user_role|default:"Member" }}</span>
+                                </div>
+                            </div>
+                            <div class="team-details">
+                                <p class="team-description">{{ team.description|default:"No description" }}</p>
+                                <div class="team-stats">
+                                    <span class="stat">
+                                        <i class="icon-members">👤</i>
+                                        {{ team.get_member_count }} members
+                                    </span>
+                                    <span class="stat">
+                                        <i class="icon-projects">📁</i>
+                                        {{ team.projects.count }} projects
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="team-actions">
+                                <a href="{% url 'accounts:team_detail' team.pk %}" class="btn btn-small">View Team</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🤝</div>
+                <h3>No team memberships</h3>
+                <p>You haven't been invited to any teams yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,523 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ viewed_user.get_full_name|default:viewed_user.username }} - Profile{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="profile-header">
+        <div class="profile-cover">
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" alt="{{ viewed_user.get_full_name|default:viewed_user.username }}" class="profile-avatar">
+            {% else %}
+                <div class="profile-avatar-placeholder">
+                    <i class="icon-user">👤</i>
+                </div>
+            {% endif %}
+            
+            <div class="profile-info">
+                <h1>{{ viewed_user.get_full_name|default:viewed_user.username }}</h1>
+                <p class="username">@{{ viewed_user.username }}</p>
+                <p class="role">{{ profile.get_role_display }}</p>
+                
+                {% if profile.bio %}
+                    <p class="bio">{{ profile.bio }}</p>
+                {% endif %}
+                
+                <div class="profile-meta">
+                    {% if profile.website %}
+                        <a href="{{ profile.website }}" target="_blank" class="meta-link">
+                            <i class="icon-website">🌐</i>
+                            Website
+                        </a>
+                    {% endif %}
+                    {% if profile.location %}
+                        <span class="meta-item">
+                            <i class="icon-location">📍</i>
+                            {{ profile.location }}
+                        </span>
+                    {% endif %}
+                    <span class="meta-item">
+                        <i class="icon-joined">📅</i>
+                        Joined {{ viewed_user.date_joined|date:"F Y" }}
+                    </span>
+                </div>
+            </div>
+            
+            {% if user == viewed_user %}
+                <div class="profile-actions">
+                    <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary">Edit Profile</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="profile-content">
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-number">{{ project_count }}</div>
+                <div class="stat-label">Projects</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ profile.get_public_projects_count }}</div>
+                <div class="stat-label">Public Projects</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ profile.total_views }}</div>
+                <div class="stat-label">Profile Views</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ viewed_user.teams.count }}</div>
+                <div class="stat-label">Teams</div>
+            </div>
+        </div>
+
+        {% if projects %}
+            <div class="projects-section">
+                <h2>Public Projects</h2>
+                <div class="projects-grid">
+                    {% for project in projects %}
+                        <div class="project-card">
+                            <div class="project-thumbnail">
+                                {% if project.thumbnail %}
+                                    <img src="{{ project.thumbnail.url }}" alt="{{ project.title }}">
+                                {% else %}
+                                    <div class="thumbnail-placeholder">
+                                        <i class="icon-project">📁</i>
+                                        <span>No Image</span>
+                                    </div>
+                                {% endif %}
+                                <div class="project-status status-{{ project.status }}">
+                                    {{ project.get_status_display }}
+                                </div>
+                            </div>
+                            
+                            <div class="project-content">
+                                <h3><a href="{% url 'projects:detail' project.slug %}">{{ project.title }}</a></h3>
+                                <p class="project-description">{{ project.description|truncatechars:100 }}</p>
+                                
+                                <div class="project-meta">
+                                    <span class="meta-item">
+                                        <i class="icon-category">🏷️</i>
+                                        {{ project.get_category_display }}
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="icon-date">📅</i>
+                                        {{ project.created_at|date:"M d, Y" }}
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="icon-views">👁️</i>
+                                        {{ project.view_count }} views
+                                    </span>
+                                </div>
+                                
+                                {% if project.tags %}
+                                    <div class="project-tags">
+                                        {% for tag in project.tags_list %}
+                                            <span class="tag">{{ tag }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-projects">
+                <div class="empty-icon">📁</div>
+                <h3>No public projects</h3>
+                <p>{{ viewed_user.username }} hasn't published any public projects yet.</p>
+            </div>
+        {% endif %}
+
+        {% if user == viewed_user %}
+            <div class="teams-section">
+                <h2>My Teams</h2>
+                {% if viewed_user.teams.exists %}
+                    <div class="teams-list">
+                        {% for team in viewed_user.teams.all %}
+                            <div class="team-item">
+                                {% if team.logo %}
+                                    <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="team-logo">
+                                {% else %}
+                                    <div class="team-logo-placeholder">
+                                        <i class="icon-team">👥</i>
+                                    </div>
+                                {% endif %}
+                                <div class="team-info">
+                                    <h4><a href="{% url 'accounts:team_detail' team.pk %}">{{ team.name }}</a></h4>
+                                    <p class="team-description">{{ team.description|default:"No description" }}</p>
+                                    <span class="team-role">{{ team.get_user_role|default:"Member" }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-teams">
+                        <div class="empty-icon">👥</div>
+                        <h3>No teams yet</h3>
+                        <p>You haven't joined any teams yet.</p>
+                        <a href="{% url 'accounts:team_create' %}" class="btn btn-primary">Create Team</a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.profile-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.profile-header {
+    margin-bottom: 3rem;
+}
+
+.profile-cover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.profile-avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    border: 4px solid white;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-info h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+}
+
+.username {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin: 0 0 0.5rem 0;
+}
+
+.role {
+    background: rgba(255,255,255,0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.bio {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    max-width: 600px;
+}
+
+.profile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.meta-link {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.meta-link:hover {
+    text-decoration: underline;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.stats-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 1rem;
+}
+
+.projects-section, .teams-section {
+    margin-bottom: 3rem;
+}
+
+.projects-section h2, .teams-section h2 {
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.project-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-2px);
+}
+
+.project-thumbnail {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.project-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    color: #666;
+}
+
+.project-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-draft { background: #ffc107; color: #212529; }
+.status-in_progress { background: #17a2b8; color: white; }
+.status-published { background: #28a745; color: white; }
+.status-completed { background: #6f42c1; color: white; }
+
+.project-content {
+    padding: 1.5rem;
+}
+
+.project-content h3 {
+    margin: 0 0 0.5rem 0;
+}
+
+.project-content h3 a {
+    color: #333;
+    text-decoration: none;
+}
+
+.project-content h3 a:hover {
+    color: #007bff;
+}
+
+.project-description {
+    color: #666;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.project-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.project-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tag {
+    background: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #495057;
+}
+
+.teams-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.team-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.team-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.team-logo-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #666;
+}
+
+.team-info {
+    flex: 1;
+}
+
+.team-info h4 {
+    margin: 0 0 0.5rem 0;
+}
+
+.team-info h4 a {
+    color: #333;
+    text-decoration: none;
+}
+
+.team-info h4 a:hover {
+    color: #007bff;
+}
+
+.team-description {
+    color: #666;
+    margin: 0 0 0.5rem 0;
+}
+
+.team-role {
+    background: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #495057;
+}
+
+.empty-projects, .empty-teams {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+@media (max-width: 768px) {
+    .profile-cover {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-meta {
+        justify-content: center;
+    }
+    
+    .projects-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}

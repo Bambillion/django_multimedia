@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.title }} - Multimedia Project{% endblock %}
+
+{% block content %}
+<div class="project-detail-container">
+    <div class="project-header">
+        {% if project.thumbnail %}
+            <img src="{{ project.thumbnail.url }}" alt="{{ project.title }}" class="project-header-image">
+        {% else %}
+            <div class="placeholder-large">No image</div>
+        {% endif %}
+    </div>
+    
+    <div class="project-content">
+        <div class="project-main">
+            <div class="project-meta">
+                <h1>{{ project.title }}</h1>
+                <p class="project-creator">
+                    by <a href="{% url 'accounts:profile' project.creator.username %}">{{ project.creator.get_full_name|default:project.creator.username }}</a>
+                </p>
+                {% if project.category %}
+                    <p class="project-category">
+                        <a href="{% url 'projects:category' project.category.slug %}">{{ project.category.name }}</a>
+                    </p>
+                {% endif %}
+                <p class="project-date">Published {{ project.published_at|date:"M d, Y" }}</p>
+            </div>
+            
+            <div class="project-description">
+                <h2>About</h2>
+                <p>{{ project.description }}</p>
+            </div>
+            
+            {% if project.get_tags_list %}
+                <div class="project-tags">
+                    <h3>Tags</h3>
+                    <div class="tags-list">
+                        {% for tag in project.get_tags_list %}
+                            <span class="tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if media_files %}
+                <div class="project-media">
+                    <h2>Media Files ({{ media_files.count }})</h2>
+                    <div class="media-list">
+                        {% for media_file in media_files %}
+                            <div class="media-item">
+                                {% if media_file.media.file_type == 'image' %}
+                                    <img src="{{ media_file.media.file.url }}" alt="{{ media_file.media.title }}" class="media-thumbnail">
+                                {% elif media_file.media.file_type == 'video' %}
+                                    <div class="media-icon">▶ Video</div>
+                                {% elif media_file.media.file_type == 'audio' %}
+                                    <div class="media-icon">♪ Audio</div>
+                                {% elif media_file.media.file_type == 'document' %}
+                                    <div class="media-icon">📄 Document</div>
+                                {% endif %}
+                                <h4>{{ media_file.media.title }}</h4>
+                                {% if media_file.caption %}
+                                    <p>{{ media_file.caption }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if can_edit %}
+                <div class="project-admin">
+                    <h3>Project Management</h3>
+                    <div class="admin-actions">
+                        <a href="{% url 'projects:edit' project.slug %}" class="btn btn-primary">Edit Project</a>
+                        {% if project.status == 'draft' %}
+                            <a href="{% url 'projects:publish' project.slug %}" class="btn btn-success">Publish</a>
+                        {% endif %}
+                        <a href="{% url 'projects:delete' project.slug %}" class="btn btn-danger">Delete</a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if comments %}
+                <div class="project-comments">
+                    <h2>Comments ({{ comment_count }})</h2>
+                    <div class="comments-list">
+                        {% for comment in comments %}
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+                                    <span class="comment-date">{{ comment.created_at|date:"M d, Y H:i" }}</span>
+                                </div>
+                                <div class="comment-content">
+                                    {{ comment.content }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if user.is_authenticated %}
+                <div class="project-comment-form">
+                    <h3>Add Comment</h3>
+                    <form method="post" action="{% url 'projects:comment' project.slug %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <textarea name="content" class="form-control" placeholder="Share your feedback..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post Comment</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+        
+        <aside class="project-sidebar">
+            <div class="sidebar-card">
+                <div class="card-content">
+                    <p><strong>Views:</strong> {{ project.view_count }}</p>
+                    <p><strong>Likes:</strong> {{ project.like_count }}</p>
+                    <p><strong>Comments:</strong> {{ comment_count }}</p>
+                </div>
+            </div>
+            
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'projects:like' project.slug %}" class="like-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary btn-block">
+                        {% if user_liked %}
+                            ♥ Unlike
+                        {% else %}
+                            ♡ Like
+                        {% endif %}
+                    </button>
+                </form>
+            {% endif %}
+            
+            <div class="sidebar-card creator-info">
+                <h3>Creator</h3>
+                {% if project.creator.profile.avatar %}
+                    <img src="{{ project.creator.profile.avatar.url }}" alt="{{ project.creator.username }}" class="creator-avatar">
+                {% endif %}
+                <h4><a href="{% url 'accounts:profile' project.creator.username %}">{{ project.creator.get_full_name|default:project.creator.username }}</a></h4>
+                <p>{{ project.creator.profile.role|title }}</p>
+                <a href="{% url 'accounts:profile' project.creator.username %}" class="btn btn-outline btn-block">View Profile</a>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<style>
+.project-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.project-header {
+    width: 100%;
+    height: 400px;
+    background-color: #f0f0f0;
+    margin-bottom: 2rem;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.project-header img,
+.placeholder-large {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.project-content {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+}
+
+.project-main {
+    background: white;
+}
+
+.project-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.sidebar-card h3 {
+    margin-bottom: 1rem;
+}
+
+.card-content p {
+    margin: 0.5rem 0;
+}
+
+.creator-info {
+    text-align: center;
+}
+
+.creator-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+}
+
+.project-meta {
+    margin-bottom: 2rem;
+}
+
+.project-creator {
+    color: #666;
+    font-size: 0.95em;
+}
+
+.project-category {
+    margin: 0.5rem 0;
+}
+
+.project-category a {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+}
+
+.project-date {
+    color: #999;
+    font-size: 0.9em;
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #e3f2fd;
+    color: #2E75B6;
+    border-radius: 20px;
+    font-size: 0.9em;
+}
+
+.media-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.media-item {
+    border: 1px solid #e0e0e0;
+    padding: 1rem;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.media-thumbnail {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+}
+
+.media-icon {
+    width: 100%;
+    height: 120px;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+}
+
+.project-admin {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 4px solid #2E75B6;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.admin-actions .btn {
+    flex: 1;
+    min-width: 150px;
+}
+
+.comments-list {
+    margin: 1.5rem 0;
+}
+
+.comment {
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    background-color: #f9f9f9;
+}
+
+.comment-header {
+    margin-bottom: 0.5rem;
+}
+
+.comment-date {
+    color: #999;
+    font-size: 0.85em;
+    margin-left: 0.5rem;
+}
+
+.comment-content {
+    color: #333;
+    line-height: 1.6;
+}
+
+.project-comment-form {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.like-form {
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .project-header {
+        height: 250px;
+    }
+    
+    .project-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-actions {
+        flex-direction: column;
+    }
+    
+    .admin-actions .btn {
+        min-width: auto;
+    }
+}
+</style>
+{% endblock %}

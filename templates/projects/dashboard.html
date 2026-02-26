@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Multimedia Project{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Projects Dashboard</h1>
+        <a href="{% url 'projects:create' %}" class="btn btn-primary">+ New Project</a>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>{{ project_count }}</h3>
+            <p>Total Projects</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ published_count }}</h3>
+            <p>Published</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ draft_count }}</h3>
+            <p>Drafts</p>
+        </div>
+    </div>
+    
+    <div class="projects-section">
+        <h2>Recent Projects</h2>
+        {% if recent_projects %}
+            <div class="projects-grid">
+                {% for project in recent_projects %}
+                    <div class="project-card">
+                        <div class="project-image">
+                            {% if project.thumbnail %}
+                                <img src="{{ project.thumbnail.url }}" alt="{{ project.title }}">
+                            {% else %}
+                                <div class="placeholder">No image</div>
+                            {% endif %}
+                            <span class="status-badge status-{{ project.status }}">{{ project.get_status_display }}</span>
+                        </div>
+                        <div class="project-info">
+                            <h4><a href="{% url 'projects:detail' project.slug %}">{{ project.title }}</a></h4>
+                            <p class="text-muted">{{ project.get_tags_list|length }} tags • {{ project.get_media_count }} media files</p>
+                            <div class="project-actions">
+                                <a href="{% url 'projects:edit' project.slug %}" class="btn-small btn-edit">Edit</a>
+                                {% if project.status == 'draft' %}
+                                    <a href="{% url 'projects:publish' project.slug %}" class="btn-small btn-success">Publish</a>
+                                {% endif %}
+                                <a href="{% url 'projects:detail' project.slug %}" class="btn-small btn-view">View</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-state">No projects yet. <a href="{% url 'projects:create' %}">Create your first project</a></p>
+        {% endif %}
+    </div>
+    
+    {% if projects|length > 6 %}
+        <div class="view-all">
+            <a href="{% url 'projects:browse' %}" class="btn btn-outline">View All Projects</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

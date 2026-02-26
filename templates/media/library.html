@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Media Library - Multimedia Project{% endblock %}
+
+{% block content %}
+<div class="media-library">
+    <div class="library-header">
+        <h1>Media Library</h1>
+        <div class="library-actions">
+            <a href="{% url 'media:upload' %}" class="btn btn-primary">Upload Media</a>
+        </div>
+    </div>
+
+    <div class="media-filters">
+        <div class="filter-group">
+            <label for="media-type">Filter by Type:</label>
+            <select id="media-type" class="form-control">
+                <option value="">All Types</option>
+                <option value="image">Images</option>
+                <option value="video">Videos</option>
+                <option value="audio">Audio</option>
+                <option value="document">Documents</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="search">Search:</label>
+            <input type="text" id="search" class="form-control" placeholder="Search media files...">
+        </div>
+    </div>
+
+    <div class="media-grid">
+        {% if media_files %}
+            {% for file in media_files %}
+                <div class="media-item" data-type="{{ file.get_media_type }}">
+                    <div class="media-preview">
+                        {% if file.is_image %}
+                            <img src="{{ file.file.url }}" alt="{{ file.title }}">
+                        {% elif file.is_video %}
+                            <div class="video-placeholder">
+                                <i class="icon-video">🎥</i>
+                                <span>Video</span>
+                            </div>
+                        {% elif file.is_audio %}
+                            <div class="audio-placeholder">
+                                <i class="icon-audio">🎵</i>
+                                <span>Audio</span>
+                            </div>
+                        {% else %}
+                            <div class="document-placeholder">
+                                <i class="icon-document">📄</i>
+                                <span>Document</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="media-info">
+                        <h4>{{ file.title|truncatechars:30 }}</h4>
+                        <p class="media-meta">
+                            {{ file.get_media_type_display }} • 
+                            {{ file.file_size|filesizeformat }} • 
+                            {{ file.uploaded_at|date:"M d, Y" }}
+                        </p>
+                        <div class="media-actions">
+                            <a href="{{ file.file.url }}" class="btn-small" target="_blank">View</a>
+                            <button class="btn-small btn-danger" onclick="deleteMedia('{{ file.id }}')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-library">
+                <div class="empty-icon">📁</div>
+                <h3>No media files yet</h3>
+                <p>Upload your first media file to get started.</p>
+                <a href="{% url 'media:upload' %}" class="btn btn-primary">Upload Media</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Simple filtering functionality
+document.getElementById('media-type').addEventListener('change', filterMedia);
+document.getElementById('search').addEventListener('input', filterMedia);
+
+function filterMedia() {
+    const typeFilter = document.getElementById('media-type').value;
+    const searchTerm = document.getElementById('search').value.toLowerCase();
+    const mediaItems = document.querySelectorAll('.media-item');
+    
+    mediaItems.forEach(item => {
+        const type = item.dataset.type;
+        const title = item.querySelector('h4').textContent.toLowerCase();
+        
+        const matchesType = !typeFilter || type === typeFilter;
+        const matchesSearch = !searchTerm || title.includes(searchTerm);
+        
+        if (matchesType && matchesSearch) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function deleteMedia(fileId) {
+    if (confirm('Are you sure you want to delete this media file?')) {
+        // Implement delete functionality
+        window.location.href = `/media/delete/${fileId}/`;
+    }
+}
+</script>
+{% endblock %}
