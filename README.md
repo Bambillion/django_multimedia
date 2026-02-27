@@ -123,7 +123,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 ### Step 2: Install Dependencies
 ```bash
-pip install django==4.2
+pip install django==6.0.2
 pip install pillow  # Image processing
 pip install psycopg2-binary  # PostgreSQL (optional)
 pip install python-dotenv  # Environment variables
@@ -243,7 +243,7 @@ MediaAsset
 SECRET_KEY=your-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
-DATABASE_URL=postgresql://user:pass@localhost/dbname
+DATABASE_URL="sqlite:///db.sqlite3"
 ```
 
 ## Templating System
