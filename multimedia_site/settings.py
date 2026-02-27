@@ -2,15 +2,18 @@
 Multimedia Project Website - Django Settings
 """
 import os
-from pathlib import Path
+import pathlib
+import dj_database_url
+
 
 # Build paths
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 
 # Security Settings
-SECRET_KEY = 'django-insecure-multimedia-project-dev-only-change-in-production'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'a-fallback-unsafe-key-for-local-dev')
+DEBUG = False  # Set to False for production, True for development
+ALLOWED_HOSTS = [os.environ.get('RENDER_EXTERNAL_HOSTNAME', '*')]
+# ALLOWED_HOSTS = ['*']
 
 # Installed Apps
 INSTALLED_APPS = [
@@ -60,13 +63,21 @@ TEMPLATES = [
 WSGI_APPLICATION = 'multimedia_site.wsgi.application'
 
 # Database Configuration - SQLite for development
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+"""
 
+DATABASES = {
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600
+    )
+}
 # Authentication Password Validators
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -89,10 +100,19 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+"""
 # Static Files
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+"""
+
+
+# Static files configuration for WhiteNoise
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Media Files - For uploaded content
 MEDIA_URL = '/media/'
